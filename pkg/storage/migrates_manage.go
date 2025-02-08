@@ -1,17 +1,27 @@
 package storage
 
-import "github.com/fanqie/gormMigrate/pkg/impl"
+import (
+	"github.com/fanqie/gormMigrate/pkg/impl"
+	"github.com/fanqie/gormMigrate/pkg/migrate"
+)
 
 type MigratesManage struct {
 	migrateList []*impl.GormMigrateInterface
 	TableName   string
+	DbTool      *DbTool
 }
 
-func NewMigratesManage() *MigratesManage {
+func NewMigratesManage(tool *DbTool) *MigratesManage {
 	return &MigratesManage{
-		TableName: "migrates",
+		DbTool: tool,
 	}
 }
-func (receiver MigratesManage) CheckTable() {
 
+func (r MigratesManage) CheckTable() {
+	if !r.DbTool.db.Migrator().HasTable(&migrate.Basic{}) {
+		err := r.DbTool.db.AutoMigrate(&migrate.Basic{})
+		if err != nil {
+			return
+		}
+	}
 }

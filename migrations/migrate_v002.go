@@ -1,27 +1,27 @@
-package demo
+package migrations
 
 import (
 	"fmt"
 	migrate "github.com/fanqie/gormMigrate/pkg/migrate"
 )
 
-type MigrateV001 struct {
-	migrate.Basic
+type MigrateV002 struct {
+	migrate.Migrate
 }
 
-func NewMigrateV001() *MigrateV001 {
-	return &MigrateV001{}
+func NewMigrateV002() *MigrateV002 {
+	return &MigrateV002{}
 }
-func (r *MigrateV001) Register() {
-	r.Tag = "V001"
+func (r *MigrateV002) Register() {
+	r.Tag = "V002"
 
 }
-func (r *MigrateV001) Up() {
+func (r *MigrateV002) Up() {
 	// todo:migrate the database
 	fmt.Printf("test,%v", r.Tag)
 	r.UpAfter()
 }
-func (r *MigrateV001) Down() {
+func (r *MigrateV002) Down() {
 	// todo:migrate the database
 	fmt.Printf("test,%v", r.Tag)
 	r.DownAfter()

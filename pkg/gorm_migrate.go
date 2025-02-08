@@ -1,26 +1,47 @@
-package demo
+package pkg
 
 import (
 	"fmt"
+	"github.com/fanqie/gormMigrate/pkg/impl"
+	"github.com/fanqie/gormMigrate/pkg/storage"
 	"github.com/spf13/cobra"
+	"os"
 )
 
-func Init() {
-
-	definedCommand()
+type GormMigrate struct {
+	migrations       map[string]impl.GormMigrateInterface
+	DbTool           *storage.DbTool
+	MigrationsManage *storage.MigratesManage
 }
 
-func definedCommand() {
-	rootCmd := &cobra.Command{
-		Use:   "",
-		Short: "",
-		Long:  "",
-		//Run: func(cmd *cobra.Command, args []string) {
-		//	// 这是根命令的执行逻辑
-		//	fmt.Printf("欢迎使用示例应用程序！%v", args)
-		//	register()
-		//},
+func (r *GormMigrate) RegisterMigration(name string, migrationFunc impl.GormMigrateInterface) {
+	r.migrations[name] = migrationFunc
+}
+func NewGormMigrate() *GormMigrate {
+	boot := &GormMigrate{
+		migrations: make(map[string]impl.GormMigrateInterface),
+		DbTool:     storage.NewDbTool(),
 	}
+	return boot
+}
+
+func (r *GormMigrate) Setup(db storage.GromParams, afterHandle func()) {
+	r.DefinedCommand()
+	afterHandle()
+	r.databaseInit(db)
+	r.MigrationsManage = storage.NewMigratesManage(r.DbTool)
+	r.MigrationsManage.CheckTable()
+}
+func (r *GormMigrate) databaseInit(db storage.GromParams) {
+	err := r.DbTool.Open(db)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+}
+func (r *GormMigrate) DefinedCommand() {
+	rootCmd := &cobra.Command{}
 	genCommand := &cobra.Command{
 		Use: "gen",
 		Short: "generate a new migrate file" +
@@ -84,13 +105,40 @@ func definedCommand() {
 	}
 	migrateCommand.Flags().Int8P("step", "s", 1, "By default, all new migration file versions will be migrated, and you can also set the migration step size")
 	rootCmd.AddCommand(migrateCommand)
-	println(rootCmd.Execute().Error())
+	err := rootCmd.Execute()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
 }
 
 func gen(action string, tableName string) {
 	fmt.Printf("gen: %v,%s", action, tableName)
-	//解析命令行参数
+	migrateFiles, err := os.ReadDir("./")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	for _, file := range migrateFiles {
+		if file.IsDir() {
+			continue
+		}
+		if file.Name() == "migrate.go" {
+			continue
+		}
+		if file.Name() == "boot.go" {
+			continue
+		}
+		if file.Name() == "migrate_v001.go" {
+			continue
+		}
+		if file.Name() == "migrate_v002.go" {
+			continue
+		}
+		if file.Name() == "migrate_v003.go" {
+		}
+	}
 	//获取所有迁移文件
 	//生成一个迁移文件
 	//从数据库里读取并刷新注册文件

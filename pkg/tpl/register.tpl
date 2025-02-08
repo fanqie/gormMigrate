@@ -1,16 +1,11 @@
-package demo
+package migrations
 
-import "github.com/fanqie/gormMigrate/pkg/impl"
+import "github.com/fanqie/gormMigrate/pkg"
 
-var migrations = make(map[string]impl.GormMigrateInterface)
-
-func RegisterMigration(name string, migrationFunc impl.GormMigrateInterface) {
-	migrations[name] = migrationFunc
-}
-func register() {
+func Register(migrate *pkg.GormMigrate) {
     {{RegisterMigration}}
         //todo:最终替换为
-	    RegisterMigration("{{@tag}}", NewMigrateV{{@tag}})
-	    RegisterMigration("{{@tag}}", NewMigrateV{{@tag}})
-	    RegisterMigration("{{@tag}}", NewMigrateV{{@tag}})
+	    // migrate.RegisterMigration("{{@tag0}}", NewMigrateV{{@tag0}})
+	    // migrate.RegisterMigration("{{@tag1}}", NewMigrateV{{@tag1}})
+	    // migrate.RegisterMigration("{{@tag2}}", NewMigrateV{{@tag2}})
 }

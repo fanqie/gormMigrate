@@ -15,6 +15,9 @@ type Basic struct {
 	RevertedAt      time.Time `json:"revertedAt" yaml:"revertedAt" dc:"revertedAt"`
 }
 
+func (Basic) TableName() string {
+	return "gorm_migrations"
+}
 func (receiver *Basic) insertRecord() {
 	receiver.Tag = fmt.Sprintf("_v_%s", time.Now())
 	receiver.CreatedAt = time.Now()
