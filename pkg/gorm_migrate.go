@@ -5,7 +5,6 @@ import (
 	"github.com/fanqie/gormMigrate/pkg/impl"
 	"github.com/fanqie/gormMigrate/pkg/storage"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 type GormMigrate struct {
@@ -115,30 +114,12 @@ func (r *GormMigrate) DefinedCommand() {
 
 func gen(action string, tableName string) {
 	fmt.Printf("gen: %v,%s", action, tableName)
-	migrateFiles, err := os.ReadDir("./")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	for _, file := range migrateFiles {
-		if file.IsDir() {
-			continue
-		}
-		if file.Name() == "migrate.go" {
-			continue
-		}
-		if file.Name() == "boot.go" {
-			continue
-		}
-		if file.Name() == "migrate_v001.go" {
-			continue
-		}
-		if file.Name() == "migrate_v002.go" {
-			continue
-		}
-		if file.Name() == "migrate_v003.go" {
-		}
-	}
+	//migrateFiles, err := os.ReadDir("./")
+	//if err != nil {
+	//	fmt.Println(err)
+	//	return
+	//}
+
 	//获取所有迁移文件
 	//生成一个迁移文件
 	//从数据库里读取并刷新注册文件
