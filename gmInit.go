@@ -99,7 +99,7 @@ import (
 	"github.com/fanqie/gormMigrate/pkg"
 )
 
-func Register(migrate *pkg.GormMigrate) {
+func Register(core *pkg.GormMigrate) {
 }
 `
 }

@@ -5,23 +5,23 @@ import (
 	migrate "github.com/fanqie/gormMigrate/pkg/migrate"
 )
 
-type Migrate{{Tag}} struct {
-	migrate.Basic
+type Migrate{{TypeTag}} struct {
+	migrate.MigrateBasic
 }
 
-func NewMigrate{{Tag}}() *Migrate{{Tag}} {
-	return &Migrate{{Tag}}{}
+func NewMigrate{{TypeTag}}() *Migrate{{TypeTag}} {
+	return &Migrate{{TypeTag}}{}
 }
-func (r *Migrate{{Tag}}) Register() {
+func (r *Migrate{{TypeTag}}) Register() {
 	r.Tag = "{{Tag}}"
 
 }
-func (r *Migrate{{Tag}}) Up() {
+func (r *Migrate{{TypeTag}}) Up() {
 	// todo:migrate the database
 	fmt.Printf("test,%v", r.Tag)
 	r.UpAfter()
 }
-func (r *Migrate{{Tag}}) Down() {
+func (r *Migrate{{TypeTag}}) Down() {
 	// todo:migrate the database
 	fmt.Printf("test,%v", r.Tag)
 	r.DownAfter()

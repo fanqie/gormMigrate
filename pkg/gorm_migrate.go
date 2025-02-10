@@ -2,129 +2,46 @@ package pkg
 
 import (
 	"fmt"
+	"github.com/fanqie/gormMigrate/pkg/core"
 	"github.com/fanqie/gormMigrate/pkg/impl"
-	"github.com/fanqie/gormMigrate/pkg/storage"
-	"github.com/fanqie/gormMigrate/pkg/utility"
-	"github.com/spf13/cobra"
 )
 
 type GormMigrate struct {
 	migrations       map[string]impl.GormMigrateInterface
-	DbTool           *storage.DbTool
-	MigrationsManage *storage.MigratesManage
+	DbTool           *core.DbTool
+	MigrationsManage *core.MigratesManage
+	isDebug          bool
 }
 
 func (r *GormMigrate) RegisterMigration(name string, migrationFunc impl.GormMigrateInterface) {
 	r.migrations[name] = migrationFunc
 }
-func NewGormMigrate() *GormMigrate {
+func NewGormMigrate(isDebug bool) *GormMigrate {
 	boot := &GormMigrate{
 		migrations: make(map[string]impl.GormMigrateInterface),
-		DbTool:     storage.NewDbTool(),
+		DbTool:     core.NewDbTool(),
+		isDebug:    isDebug,
 	}
+
 	return boot
 }
 
-func (r *GormMigrate) Setup(db storage.GromParams, afterHandle func()) {
+func (r *GormMigrate) Setup(db core.GromParams, afterHandle func()) {
 	r.databaseInit(db)
-	r.DefinedCommand()
-	afterHandle()
+	if r.isDebug {
+		r.DbTool.Db.Debug()
+	}
+	r.MigrationsManage = core.NewMigratesManage()
 
-	r.MigrationsManage = storage.NewMigratesManage(r.DbTool)
+	core.DefinedCommand(r.MigrationsManage)
+	afterHandle()
 	r.MigrationsManage.CheckTable()
 }
-func (r *GormMigrate) databaseInit(db storage.GromParams) {
+func (r *GormMigrate) databaseInit(db core.GromParams) {
 	err := r.DbTool.Open(db)
 	if err != nil {
 		fmt.Println(err)
 		panic("the database connect error")
 	}
-
-}
-func (r *GormMigrate) DefinedCommand() {
-	rootCmd := &cobra.Command{}
-	genCommand := &cobra.Command{
-		Use: "gen",
-		Short: "generate a new migrate file" +
-			"\n\tsyntax：gmcmd gen  [create|alter] {table_name}" +
-			"\n\tusage：`gmcmd gen create user` //or `gmcmd gen alter user`",
-
-		Run: func(cmd *cobra.Command, args []string) {
-			// 这是 server 子命令的执行逻辑
-			if len(args) < 2 {
-				utility.ErrPrint("syntax error, gmcmd gen [create|alter] {table_name}")
-				return
-			}
-			action := args[0]
-			tableName := args[1]
-			if tableName == "" {
-
-				utility.ErrPrint("tableName is required")
-				return
-			}
-			actions := []string{"alter", "create"}
-
-			found := false
-			for _, a := range actions {
-				if a == action {
-					found = true
-					break
-				}
-			}
-			if !found {
-				utility.ErrPrint("action type is required， the type value equal must “alter ”or “create”")
-				return
-			}
-			gen(action, tableName)
-
-		},
-	}
-	genCommand.Flags().StringP("create", "c", "yes", "set action to create the table")
-	genCommand.Flags().StringP("modify", "m", "no", "set action to modify the table")
-	rootCmd.AddCommand(genCommand)
-
-	rollbackCommand := &cobra.Command{
-		Use:   "rollback",
-		Short: "rollback migrations version by step",
-		Run: func(cmd *cobra.Command, args []string) {
-			// 这是 server 子命令的执行逻辑
-			fmt.Printf("欢迎使用示例应用程序！%v", args)
-			fmt.Printf("欢迎使用示例应用程序！%v", args)
-		},
-	}
-	rollbackCommand.Flags().Int8P("step", "s", 1, "The default is to rollback one version. You can specify the number of versions to be rolled back and execute them in reverse order!")
-	// 添加子命令
-	rootCmd.AddCommand(rollbackCommand)
-
-	migrateCommand := &cobra.Command{
-		Use:   "migrate",
-		Short: "all new migration file versions will be migrated or target step size version",
-		Run: func(cmd *cobra.Command, args []string) {
-			// 这是 server 子命令的执行逻辑
-			fmt.Printf("欢迎使用示例应用程序！%v", args)
-			fmt.Printf("欢迎使用示例应用程序！%v", args)
-		},
-	}
-	migrateCommand.Flags().Int8P("step", "s", 1, "By default, all new migration file versions will be migrated, and you can also set the migration step size")
-	rootCmd.AddCommand(migrateCommand)
-	err := rootCmd.Execute()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-}
-
-func gen(action string, tableName string) {
-	fmt.Printf("gen: %v,%s", action, tableName)
-	//migrateFiles, err := os.ReadDir("./")
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
-
-	//获取所有迁移文件
-	//生成一个迁移文件
-	//从数据库里读取并刷新注册文件
 
 }

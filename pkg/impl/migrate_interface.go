@@ -6,4 +6,5 @@ type GormMigrateInterface interface {
 	Register()
 	UpAfter()
 	DownAfter()
+	TableName() string
 }
