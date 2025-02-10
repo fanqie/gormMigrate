@@ -1,6 +1,14 @@
-module github.com/fanqie/gormMigrate
+module github.com/fanqie/gormMigrate-example
 
-go 1.20.0
+go 1.23.0
+
+replace github.com/fanqie/gormMigrate => ../
+
+require (
+	github.com/fanqie/gormMigrate v0.0.0-00010101000000-000000000000
+	gorm.io/driver/mysql v1.5.7
+	gorm.io/gorm v1.25.12
+)
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
@@ -15,6 +23,4 @@ require (
 	github.com/spf13/pflag v1.0.6 // indirect
 	golang.org/x/sys v0.25.0 // indirect
 	golang.org/x/text v0.22.0 // indirect
-	gorm.io/driver/mysql v1.5.7 // indirect
-	gorm.io/gorm v1.25.12 // indirect
 )

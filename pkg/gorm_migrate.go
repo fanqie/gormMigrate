@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/fanqie/gormMigrate/pkg/impl"
 	"github.com/fanqie/gormMigrate/pkg/storage"
+	"github.com/fanqie/gormMigrate/pkg/utility"
 	"github.com/spf13/cobra"
 )
 
@@ -25,9 +26,10 @@ func NewGormMigrate() *GormMigrate {
 }
 
 func (r *GormMigrate) Setup(db storage.GromParams, afterHandle func()) {
+	r.databaseInit(db)
 	r.DefinedCommand()
 	afterHandle()
-	r.databaseInit(db)
+
 	r.MigrationsManage = storage.NewMigratesManage(r.DbTool)
 	r.MigrationsManage.CheckTable()
 }
@@ -35,7 +37,7 @@ func (r *GormMigrate) databaseInit(db storage.GromParams) {
 	err := r.DbTool.Open(db)
 	if err != nil {
 		fmt.Println(err)
-		return
+		panic("the database connect error")
 	}
 
 }
@@ -50,13 +52,14 @@ func (r *GormMigrate) DefinedCommand() {
 		Run: func(cmd *cobra.Command, args []string) {
 			// 这是 server 子命令的执行逻辑
 			if len(args) < 2 {
-				fmt.Printf("[Error]syntax error, gmcmd gen [create|alter] {table_name}")
+				utility.ErrPrint("syntax error, gmcmd gen [create|alter] {table_name}")
 				return
 			}
 			action := args[0]
 			tableName := args[1]
 			if tableName == "" {
-				fmt.Printf("[Error]tableName is required")
+
+				utility.ErrPrint("tableName is required")
 				return
 			}
 			actions := []string{"alter", "create"}
@@ -69,7 +72,7 @@ func (r *GormMigrate) DefinedCommand() {
 				}
 			}
 			if !found {
-				fmt.Printf("[Error]action type is required， the type value equal must “alter ”or “create”")
+				utility.ErrPrint("action type is required， the type value equal must “alter ”or “create”")
 				return
 			}
 			gen(action, tableName)

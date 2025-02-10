@@ -62,8 +62,9 @@ func checkAndCreateFile(path, content string) error {
 // gmcmdContent 返回 gmcmd.go 的内容
 func gmcmdContent() string {
 	return `package main
+
 import (
-	"github.com/fanqie/gormMigrate/gorm_migrations"
+	"github.com/fanqie/gormMigrate-example/gorm_migrations"
 	gm "github.com/fanqie/gormMigrate/pkg"
 	"github.com/fanqie/gormMigrate/pkg/storage"
 	"gorm.io/driver/mysql"
@@ -73,7 +74,7 @@ import (
 
 func main() {
 	gormMigrate := gm.NewGormMigrate()
-	
+
 	gormMigrate.Setup(storage.GromParams{
 		Dialector: mysqlDialector(),
 		Opts: &gorm.Config{
@@ -83,11 +84,10 @@ func main() {
 		gorm_migrations.Register(gormMigrate)
 	})
 }
-func mysqlDialector() *Dialector{
+func mysqlDialector() gorm.Dialector {
 	dsn := "root:root@tcp(127.0.0.1:3306)/test?charset=utf8mb4&parseTime=True&loc=Local"
-	return mysql.Open(dsn);
+	return mysql.Open(dsn)
 }
-
 `
 }
 
