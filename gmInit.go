@@ -73,15 +73,19 @@ import (
 
 func main() {
 	gormMigrate := gm.NewGormMigrate()
-	dsn := "root:root@tcp(127.0.0.1:3306)/test?charset=utf8mb4&parseTime=True&loc=Local"
+	
 	gormMigrate.Setup(storage.GromParams{
-		Dialector: mysql.Open(dsn),
+		Dialector: mysqlDialector(),
 		Opts: &gorm.Config{
 			Logger: logger.Default.LogMode(logger.Info),
 		},
 	}, func() {
 		gorm_migrations.Register(gormMigrate)
 	})
+}
+func mysqlDialector() *Dialector{
+	dsn := "root:root@tcp(127.0.0.1:3306)/test?charset=utf8mb4&parseTime=True&loc=Local"
+	return mysql.Open(dsn);
 }
 
 `
