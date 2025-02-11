@@ -40,7 +40,14 @@ func DefinedCommand(migrationsManage *MigratesManage) {
 				utility.ErrPrint("action type is required， the type value equal must “alter ”or “create”")
 				return
 			}
-			gen(action, tableName, migrationsManage)
+			err := gen(GenArgs{
+				Action:    action,
+				TableName: tableName,
+			}, migrationsManage)
+			if err != nil {
+				utility.ErrPrint(err.Error())
+				return
+			}
 
 		},
 	}

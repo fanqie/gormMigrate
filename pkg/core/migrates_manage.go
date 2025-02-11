@@ -3,6 +3,7 @@ package core
 import (
 	"github.com/fanqie/gormMigrate/pkg/impl"
 	"github.com/fanqie/gormMigrate/pkg/utility"
+	"gorm.io/gorm"
 )
 
 type MigratesManage struct {
@@ -15,12 +16,12 @@ type MigratesManage struct {
 func NewMigratesManage() *MigratesManage {
 	return &MigratesManage{}
 }
-func (r *MigratesManage) RefreshMigrationsData() {
+func (r *MigratesManage) RefreshMigrationsData(tx *gorm.DB) error {
 	var migrateList []*MigrateBasic
-	result := Db.Order("created_at asc").Find(&migrateList)
+	result := tx.Order("created_at asc").Find(&migrateList)
 	if result.Error != nil {
 		utility.ErrPrintf("the database connect error:%s", result.Error.Error())
-		return
+		return result.Error
 	}
 	r.MigrateList = make([]impl.GormMigrateInterface, 0)
 	r.AlreadyList = make([]impl.GormMigrateInterface, 0)
@@ -33,6 +34,7 @@ func (r *MigratesManage) RefreshMigrationsData() {
 			r.PendingList = append(r.PendingList, s)
 		}
 	}
+	return nil
 }
 
 func (r *MigratesManage) CheckTable() {

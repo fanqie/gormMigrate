@@ -15,6 +15,9 @@ type GromParams struct {
 	Opts      *gorm.Config
 }
 
+func Migrator() gorm.Migrator {
+	return Db.Migrator()
+}
 func NewDbTool() *DbTool {
 	return &DbTool{}
 }

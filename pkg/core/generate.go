@@ -2,71 +2,100 @@ package core
 
 import (
 	"fmt"
+	"github.com/fanqie/gormMigrate/pkg/tpl"
+	"github.com/fanqie/gormMigrate/pkg/utility"
+	"gorm.io/gorm"
 	"os"
 	"strings"
 )
 
-func gen(action string, tableName string, migrationsManage *MigratesManage) {
-
-	migrationsManage.RefreshMigrationsData()
-	mb := &MigrateBasic{}
-	mb.genRecord(action, tableName)
-	Db.Create(mb)
-	GenFile(mb)
-	fmt.Printf("gen: %v,%s", action, tableName)
-	//migrateFiles, err := os.ReadDir("./")
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
-
-	//获取所有迁移文件
-	//生成一个迁移文件
-	//从数据库里读取并刷新注册文件
-
+type GenArgs struct {
+	Action    string
+	TableName string
 }
-func GenFile(r *MigrateBasic) any {
+
+func gen(genArgs GenArgs, migrationsManage *MigratesManage) error {
+
+	mb := &MigrateBasic{}
+	mb.genRecord(genArgs)
+	return Db.Transaction(func(tx *gorm.DB) error {
+		result := tx.Create(mb)
+		if result.Error != nil {
+			utility.ErrPrintf("insert error", result.Error)
+			return result.Error
+		}
+		err := migrationsManage.RefreshMigrationsData(tx)
+		if err != nil {
+			return err
+		}
+		return GenFile(mb, migrationsManage, genArgs)
+	})
+}
+func GenFile(r *MigrateBasic, migrationsManage *MigratesManage, genArgs GenArgs) error {
 
 	migrateFileName := fmt.Sprintf("./gorm_migrations/migration_%s.go", r.Tag)
+	registerFileName := "./gorm_migrations/register.go"
 
-	saveFile(migrateFileName, makeMigrateFile(r))
-
+	err := saveFile(migrateFileName, makeMigrateFile(r, genArgs))
+	if err != nil {
+		return err
+	}
+	err = overwriteFile(registerFileName, refreshRenderRegisterCode(migrationsManage))
+	if err != nil {
+		return err
+	}
 	return nil
 }
-func makeMigrateFile(r *MigrateBasic) string {
-	file, err := os.Open("../tpl/migration_{{tag}}.tpl")
-	if err != nil {
-		return fmt.Errorf("error opening file: %v", err).Error()
-
+func refreshRenderRegisterCode(migrationsManage *MigratesManage) string {
+	content := tpl.RegisterCode
+	var registerMigration []string
+	for _, migration := range migrationsManage.MigrateList {
+		migrationCode := fmt.Sprintf("migrate.RegisterMigration(\"%s\", NewMigrate%s())", migration.GetTypeTag(), migration.GetTypeTag())
+		registerMigration = append(registerMigration, migrationCode)
 	}
-	var contentBytes []byte
-
-	_, err = file.Read(contentBytes)
-	if err != nil {
-		return fmt.Errorf("error reading file: %v", err).Error()
-
+	return strings.Replace(content, "{{RegisterMigration}}", strings.Join(registerMigration, "\n\t"), -1)
+}
+func makeMigrateFile(r *MigrateBasic, genArgs GenArgs) string {
+	var content string
+	switch genArgs.Action {
+	case "create":
+		content = tpl.MigrationCreateTableCode
+		break
+	case "alter":
+		content = tpl.MigrationAlterTableCode
+		break
+	default:
+		panic("not support action")
 	}
-	content := string(contentBytes)
 	fmt.Printf("makeMigrateFile: %v", content)
-	strings.Replace(content, "{{Tag}}", r.Tag, -1)
-	strings.Replace(content, "{{TypeTag}}", r.GetTypeTag(), -1)
+	content = strings.Replace(content, "{{Tag}}", r.Tag, -1)
+	content = strings.Replace(content, "{{TypeTag}}", r.GetTypeTag(), -1)
+	content = strings.Replace(content, "{{TableStructName}}", utility.FirstToUpper(genArgs.TableName), -1)
 	fmt.Printf("makeMigrateFileEnd: %v", content)
-	//file, err = os.Create(fmt.Sprintf("%s/gorm_migrations/migrate_%s.go", utility.GetDir(), r.Tag))
-	defer file.Close().Error()
 	return content
 }
 
 // saveFile saves the content to the specified file path.
-func saveFile(path string, content string) {
+func saveFile(path string, content string) error {
 	file, err := os.Create(path)
 	if err != nil {
 		fmt.Println("Error creating file:", err)
-		return
+		return err
 	}
 	_, err = file.WriteString(content)
 	if err != nil {
 		fmt.Println("Error writing to file:", err)
-		return
+		return err
 	}
-	defer file.Close().Error()
+	return err
+	//defer file.Close().Error()
+}
+func overwriteFile(path string, content string) error {
+	err := os.Remove(path)
+	if err != nil {
+		utility.ErrPrintf("Error deleting file:", err)
+		return err
+	}
+	return saveFile(path, content)
+
 }

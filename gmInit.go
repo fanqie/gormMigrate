@@ -65,29 +65,31 @@ func gmcmdContent() string {
 
 import (
 	"github.com/fanqie/gormMigrate-example/gorm_migrations"
-	gm "github.com/fanqie/gormMigrate/pkg"
-	"github.com/fanqie/gormMigrate/pkg/storage"
+	"github.com/fanqie/gormMigrate/pkg"
+	"github.com/fanqie/gormMigrate/pkg/core"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
 func main() {
-	gormMigrate := gm.NewGormMigrate()
+	gormMigrate := pkg.NewGormMigrate(true)
 
-	gormMigrate.Setup(storage.GromParams{
+	gormMigrate.Setup(core.GromParams{
 		Dialector: mysqlDialector(),
 		Opts: &gorm.Config{
-			Logger: logger.Default.LogMode(logger.Info),
+			Logger: logger.Default.LogMode(logger.Error),
 		},
 	}, func() {
 		gorm_migrations.Register(gormMigrate)
 	})
+
 }
 func mysqlDialector() gorm.Dialector {
 	dsn := "root:root@tcp(127.0.0.1:3306)/test?charset=utf8mb4&parseTime=True&loc=Local"
 	return mysql.Open(dsn)
 }
+
 `
 }
 
@@ -99,7 +101,7 @@ import (
 	"github.com/fanqie/gormMigrate/pkg"
 )
 
-func Register(core *pkg.GormMigrate) {
+func Register(migrate *pkg.GormMigrate) {
 }
 `
 }

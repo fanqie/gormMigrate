@@ -35,7 +35,7 @@ func (r *GormMigrate) Setup(db core.GromParams, afterHandle func()) {
 
 	core.DefinedCommand(r.MigrationsManage)
 	afterHandle()
-	r.MigrationsManage.CheckTable()
+
 }
 func (r *GormMigrate) databaseInit(db core.GromParams) {
 	err := r.DbTool.Open(db)
