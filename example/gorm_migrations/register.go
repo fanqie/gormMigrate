@@ -5,6 +5,6 @@ import (
 )
 
 func Register(migrate *pkg.GormMigrate) {
-	migrate.RegisterMigration("V20250211115311401CreateTableAdmin", NewMigrateV20250211115311401CreateTableAdmin())
-	migrate.RegisterMigration("V20250211143212878CreateTableAdmin", NewMigrateV20250211143212878CreateTableAdmin())
+	migrate.RegisterMigration("V20250211175923254CreateTableUser", NewMigrateV20250211175923254CreateTableUser())
+	migrate.RegisterMigration("V20250211180036568AlterTableUser", NewMigrateV20250211180036568AlterTableUser())
 }

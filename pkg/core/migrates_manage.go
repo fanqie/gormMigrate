@@ -1,15 +1,14 @@
 package core
 
 import (
-	"github.com/fanqie/gormMigrate/pkg/impl"
 	"github.com/fanqie/gormMigrate/pkg/utility"
 	"gorm.io/gorm"
 )
 
 type MigratesManage struct {
-	MigrateList []impl.GormMigrateInterface
-	AlreadyList []impl.GormMigrateInterface
-	PendingList []impl.GormMigrateInterface
+	MigrateList []MigrateBasic
+	AlreadyList []MigrateBasic
+	PendingList []MigrateBasic
 	TableName   string
 }
 
@@ -23,15 +22,15 @@ func (r *MigratesManage) RefreshMigrationsData(tx *gorm.DB) error {
 		utility.ErrPrintf("the database connect error:%s", result.Error.Error())
 		return result.Error
 	}
-	r.MigrateList = make([]impl.GormMigrateInterface, 0)
-	r.AlreadyList = make([]impl.GormMigrateInterface, 0)
-	r.PendingList = make([]impl.GormMigrateInterface, 0)
+	r.MigrateList = make([]MigrateBasic, 0)
+	r.AlreadyList = make([]MigrateBasic, 0)
+	r.PendingList = make([]MigrateBasic, 0)
 	for _, s := range migrateList {
-		r.MigrateList = append(r.MigrateList, s)
+		r.MigrateList = append(r.MigrateList, *s)
 		if s.AlreadyMigrated {
-			r.AlreadyList = append(r.AlreadyList, s)
+			r.AlreadyList = append(r.AlreadyList, *s)
 		} else {
-			r.PendingList = append(r.PendingList, s)
+			r.PendingList = append(r.PendingList, *s)
 		}
 	}
 	return nil

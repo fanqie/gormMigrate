@@ -11,35 +11,30 @@ func DefinedCommand(migrationsManage *MigratesManage) {
 	genCommand := &cobra.Command{
 		Use: "gen",
 		Short: "generate a new core file" +
-			"\n\tsyntax：gmcmd gen  [create|alter] {table_name}" +
-			"\n\tusage：`gmcmd gen create user` //or `gmcmd gen alter user`",
+			"\n\tsyntax：gmcmd gen  [--create|--alter]  {table_name}" +
+			"\n\tusage：`gmcmd gen --create user` //or `gmcmd gen --alter user`",
 
 		Run: func(cmd *cobra.Command, args []string) {
-			// 这是 server 子命令的执行逻辑
-			if len(args) < 2 {
-				utility.ErrPrint("syntax error, gmcmd gen [create|alter] {table_name}")
+			if len(args) < 1 {
+				utility.ErrPrint("syntax error, gmcmd gen [--create|--alter]  {table_name}")
 				return
 			}
-			action := args[0]
-			tableName := args[1]
-			if tableName == "" {
+			action := ""
+			if cmd.Flags().Changed("create") {
+				action = "create"
+			} else if cmd.Flags().Changed("alter") {
+				action = "alter"
+			}
+			if action == "" {
+				utility.ErrPrint("syntax error, gmcmd gen [--create|--alter] {table_name}")
+			}
+			tableName := args[0]
 
+			if tableName == "" {
 				utility.ErrPrint("tableName is required")
 				return
 			}
-			actions := []string{"alter", "create"}
 
-			found := false
-			for _, a := range actions {
-				if a == action {
-					found = true
-					break
-				}
-			}
-			if !found {
-				utility.ErrPrint("action type is required， the type value equal must “alter ”or “create”")
-				return
-			}
 			err := gen(GenArgs{
 				Action:    action,
 				TableName: tableName,
@@ -51,17 +46,24 @@ func DefinedCommand(migrationsManage *MigratesManage) {
 
 		},
 	}
-	genCommand.Flags().StringP("create", "c", "yes", "set action to create the table")
-	genCommand.Flags().StringP("modify", "m", "no", "set action to modify the table")
+	genCommand.Flags().Bool("create", false, "set action to create the table,is default")
+	genCommand.Flags().Bool("alter", false, "set action to alter the table")
 	rootCmd.AddCommand(genCommand)
 
 	rollbackCommand := &cobra.Command{
 		Use:   "rollback",
 		Short: "rollback migrations version by step",
 		Run: func(cmd *cobra.Command, args []string) {
-			// 这是 server 子命令的执行逻辑
-			fmt.Printf("欢迎使用示例应用程序！%v", args)
-			fmt.Printf("欢迎使用示例应用程序！%v", args)
+			var step int
+			if cmd.Flags().Changed("step") {
+				value, err := cmd.Flags().GetInt("step")
+				if err != nil {
+					utility.ErrPrintf("step is required, %v", err.Error())
+					return
+				}
+				step = value
+			}
+			fmt.Printf("欢迎使用示例应用程序！%v", step)
 		},
 	}
 	rollbackCommand.Flags().Int8P("step", "s", 1, "The default is to rollback one version. You can specify the number of versions to be rolled back and execute them in reverse order!")
@@ -69,15 +71,28 @@ func DefinedCommand(migrationsManage *MigratesManage) {
 	rootCmd.AddCommand(rollbackCommand)
 
 	migrateCommand := &cobra.Command{
-		Use:   "core",
+		Use:   "migrate",
 		Short: "all new migration file versions will be migrated or target step size version",
 		Run: func(cmd *cobra.Command, args []string) {
-			// 这是 server 子命令的执行逻辑
-			fmt.Printf("欢迎使用示例应用程序！%v", args)
-			fmt.Printf("欢迎使用示例应用程序！%v", args)
+			var step int
+			if cmd.Flags().Changed("step") {
+				value, err := cmd.Flags().GetInt("step")
+				if err != nil {
+					utility.ErrPrintf("step is required, %v", err.Error())
+					return
+				}
+				step = value
+			}
+			fmt.Printf("欢迎使用示例应用程序！%v", step)
+			err := MigrateHandle(step, *migrationsManage)
+			if err != nil {
+				utility.ErrPrintf("migrate error, %v", err.Error())
+				return
+			}
 		},
 	}
-	migrateCommand.Flags().Int8P("step", "s", 1, "By default, all new migration file versions will be migrated, and you can also set the migration step size")
+
+	migrateCommand.Flags().Int("step", 1, "By default, all new migration file versions will be migrated, and you can also set the migration step size")
 	rootCmd.AddCommand(migrateCommand)
 	err := rootCmd.Execute()
 	if err != nil {

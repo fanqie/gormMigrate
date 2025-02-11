@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/fanqie/gormMigrate/pkg/utility"
+	"gorm.io/gorm"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -23,6 +24,9 @@ type MigrateBasic struct {
 func (*MigrateBasic) TableName() string {
 	return "gorm_migrations"
 }
+func (r *MigrateBasic) GetData() *MigrateBasic {
+	return r
+}
 func (r *MigrateBasic) GetTypeTag() string {
 	// 把tag转为驼峰命名
 	tags := strings.Split(r.Tag, "_")
@@ -40,19 +44,16 @@ func (r *MigrateBasic) genRecord(args GenArgs) {
 }
 
 func (r *MigrateBasic) UpAfter() {
-	r.AlreadyMigrated = true
-	r.ExecutedAt = sql.NullTime{Time: time.Now(), Valid: true}
-	//todo:update migration table
 }
 func (r *MigrateBasic) DownAfter() {
 	r.AlreadyMigrated = false
 	r.RevertedAt = sql.NullTime{Time: time.Now(), Valid: true}
 	//todo:update migration table
 }
-func (r *MigrateBasic) Up() {
+func (r *MigrateBasic) Up(tx *gorm.DB) error {
+	return nil
 }
-func (r *MigrateBasic) Down() {
-}
+func (r *MigrateBasic) Down(tx *gorm.DB) error { return nil }
 
 func (r *MigrateBasic) Register() {
 }
